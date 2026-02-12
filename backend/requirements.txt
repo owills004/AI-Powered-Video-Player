@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+faster-whisper
+transformers
+torch
+torchaudio
+python-multipart
+python-ffmpeg
+pydantic
+pysrt

@@ -147,15 +147,6 @@ function App() {
                                         fontWeight: '500',
                                         textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
                                     }}>{activeSegment.text}</p>
-                                    {activeSegment.translation && (
-                                        <p className="translated" style={{
-                                            margin: '4px 0 0 0',
-                                            fontSize: '1.2rem',
-                                            color: '#ffeb3b',
-                                            fontWeight: '500',
-                                            textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
-                                        }}>{activeSegment.translation}</p>
-                                    )}
                                 </div>
                             )}
                         </div>
@@ -164,11 +155,15 @@ function App() {
                     <div className="controls-bar" style={{ display: 'flex', gap: '10px', marginTop: '15px', alignItems: 'center', justifyContent: 'center' }}>
                         {videoUrl && <input type="file" accept="video/*" onChange={handleFileChange} />}
                         <select value={targetLang} onChange={(e) => setTargetLang(e.target.value)} style={{ padding: '10px', borderRadius: '6px', background: '#333', color: 'white', border: 'none' }}>
-                            <option value="">No Translation</option>
-                            <option value="fr">French</option>
+                            <option value="">Detect Language (No Translation)</option>
+                            <option value="en">English</option>
                             <option value="es">Spanish</option>
+                            <option value="fr">French</option>
                             <option value="de">German</option>
                             <option value="it">Italian</option>
+                            <option value="ja">Japanese</option>
+                            <option value="zh">Chinese</option>
+                            <option value="hi">Hindi</option>
                         </select>
                         <button onClick={handleTranscribe} disabled={!file || isProcessing} style={{ padding: '10px 20px', borderRadius: '6px', background: '#646cff', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>
                             {isProcessing ? '🤖 Processing...' : '✨ AI Transcribe'}

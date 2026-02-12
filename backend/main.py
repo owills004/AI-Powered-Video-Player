@@ -59,38 +59,46 @@ async def transcribe(file: UploadFile = File(...), target_lang: str = Body(None)
 
     async def event_generator():
         try:
-            # Transcribe with optimizations: beam_size=1, vad_filter=True
-            segments, info = model.transcribe(tmp_path, beam_size=1, vad_filter=True)
+            # Smart Routing: If target is English, use Whisper's native translation task
+            whisper_task = "translate" if target_lang == "en" else "transcribe"
+            
+            # Transcribe with optimizations
+            segments, info = model.transcribe(tmp_path, beam_size=1, vad_filter=True, task=whisper_task)
             
             # Send initial language info
             yield json.dumps({"language": info.language, "status": "processing"}) + "\n"
+
+            # Check if we need external translation (only if target is NOT English and NOT the detected language)
+            needs_external_translation = target_lang and target_lang != "en" and target_lang != info.language
 
             for segment in segments:
                 text = segment.text.strip()
                 if not text:
                     continue
 
-                translated_text = None
-                if target_lang:
+                display_text = text
+                if needs_external_translation:
                     trans = get_translator(target_lang)
                     if trans:
                         try:
-                            translated_text = trans(text)[0]['translation_text']
-                        except:
-                            translated_text = "[Translation Error]"
+                            # Note: Helsinki models usually expect English as source for "en-XX" models
+                            display_text = trans(text)[0]['translation_text']
+                        except Exception as e:
+                            print(f"Translation error: {e}")
+                            display_text = f"[Translation Error]"
 
                 segment_data = {
                     "start": segment.start,
                     "end": segment.end,
-                    "text": text,
-                    "translation": translated_text
+                    "text": display_text,
                 }
                 yield json.dumps(segment_data) + "\n"
                 
-                # Small sleep to allow frontend to keep up if needed
                 await asyncio.sleep(0.01)
 
             yield json.dumps({"status": "completed"}) + "\n"
+        except Exception as e:
+            yield json.dumps({"error": str(e), "status": "failed"}) + "\n"
         finally:
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
